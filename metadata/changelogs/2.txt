@@ -1,0 +1,2 @@
+* implements the f-droid bot's recommended security changes
+* updates the readme
