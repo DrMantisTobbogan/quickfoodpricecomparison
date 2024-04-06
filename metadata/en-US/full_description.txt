@@ -1,4 +1,4 @@
-The goal of this app is to perform a very straight forward comparison of a price per unit for one item to a price per unit of another item.
+Quickly convert between prices per a unit of mass for metric and imperial systems.
 
 Features:
 <ul>

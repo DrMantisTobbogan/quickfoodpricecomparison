@@ -1,1 +1,1 @@
-This application helps quickly convert between food prices per a unit of mass or volume for metric and imperial systems.
+Quickly convert between prices per a unit of mass for metric and imperial systems.
