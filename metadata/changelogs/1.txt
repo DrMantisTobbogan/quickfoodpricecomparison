@@ -1,0 +1,3 @@
+* Creates the app and it's general functionality.
+* Adds icons.
+* Adds a poor mans implementation of a food density list from the [FAO](http://www.fao.org/3/i7360en/i7360en.pdf). This needs to get refactored later.
