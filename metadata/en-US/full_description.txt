@@ -1,0 +1,8 @@
+The goal of this app is to perform a very straight forward comparison of a price per unit for one item to a price per unit of another item.
+
+Features:
+<ul>
+	<li>Convert between metric units and American imperial units.</li>
+	<li>Get an estimate of price per volume for about 500 different product types.</li>
+	<li>Save a history of your conversions for accessing later.</li>
+</ul>
