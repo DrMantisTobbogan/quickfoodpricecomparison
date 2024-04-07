@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.wolfcola.quickfoodpricecomparison.quickfoodpricecomparison"
-        versionCode 100
+        versionCode 200
         versionName "0.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -52,6 +52,7 @@ android {
             python.srcDirs = [
                 "src/main/python",  // App code
                 "src/main/python-briefcase",  // Template code
+                "src/main/python/quickfoodpricecomparison/resources"
             ]
         }
     }
