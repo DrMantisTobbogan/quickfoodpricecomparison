@@ -1,4 +1,4 @@
-Quickly convert between prices per a unit of mass for metric and imperial systems.
+Convert between prices per a unit of mass for metric and imperial systems.
 
 Features:
 <ul>
