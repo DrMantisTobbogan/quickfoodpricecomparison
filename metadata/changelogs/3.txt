@@ -1,0 +1,3 @@
+* fixes the long description raised (again) by the f-droid bot
+* updates the readme with a bit more information
+* adds rule to gitignore to avoid zip files from getting added
