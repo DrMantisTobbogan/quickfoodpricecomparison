@@ -1,0 +1,3 @@
+* adds an optional comment input for a conversion
+* adds more metric units and quantities for the input dropdown
+* refactors the unit label instantiation
