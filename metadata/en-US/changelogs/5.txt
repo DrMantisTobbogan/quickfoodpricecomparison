@@ -1,0 +1,1 @@
+* corrects bug with comment field
