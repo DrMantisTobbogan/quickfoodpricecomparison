@@ -16,9 +16,14 @@ full_name = "com.drmantistobbogan.foodpricecomparison"
 ureg = UnitRegistry()
 selection_list = [{'name': 'Price per kilogram', 'mass': ureg.kilogram * 1},
                   {'name': 'Price per 900 grams', 'mass': ureg.gram * 900},
+                  {'name': 'Price per 800 grams', 'mass': ureg.gram * 800},
                   {'name': 'Price per 750 grams', 'mass': ureg.gram * 750},
+                  {'name': 'Price per 700 grams', 'mass': ureg.gram * 700},
+                  {'name': 'Price per 600 grams', 'mass': ureg.gram * 600},
                   {'name': 'Price per 500 grams', 'mass': ureg.gram * 500},
+                  {'name': 'Price per 400 grams', 'mass': ureg.gram * 400},
                   {'name': 'Price per 250 grams', 'mass': ureg.gram * 250},
+                  {'name': 'Price per 200 grams', 'mass': ureg.gram * 200},
                   {'name': 'Price per 100 grams', 'mass': ureg.gram * 100},
                   {'name': 'Price per gram', 'mass': ureg.gram * 1},
                   {'name': 'Price per milligram', 'mass': ureg.milligram * 1},
@@ -54,7 +59,7 @@ def read_food_density() -> list:
 
 class main_app(toga.App):
 
-    def define_local_data(self):
+    def define_local_data(self) -> None:
         """Retrieve the platforms local data path and create it if necessary."""
         self.location = Path(str(self.paths.data) +
                              '\conversion_history.pickle')
@@ -65,18 +70,24 @@ class main_app(toga.App):
 
     def load_history_from_pickle(self):
         """Read history data saved in a pickle file."""
+        print(self.location)
         with open(self.location, 'rb') as handle:
             data = pickle.load(handle)
+        # Add an empty comment to migrate older data structure
+        for item in data:
+            if 'comment' not in item:
+                data['item']['comment'] = None
         return data
 
-    def convert_history_to_pickle(self):
+    def convert_history_to_pickle(self) -> None:
         """Take a dictionary of the history and save it to a pickle file locally."""
         pickleable_dict = []
         for row in self.history_item_selection.data:
             pickleable_dict.append({
                 "unit_selection": row.unit_selection,
                 "unit_value": row.unit_value,
-                "density_selection": row.density_selection
+                "density_selection": row.density_selection,
+                "comment": row.comment
             })
         pickleable_dict = [i for n, i in enumerate(
             pickleable_dict) if i not in pickleable_dict[n + 1:]]
@@ -85,19 +96,18 @@ class main_app(toga.App):
                         protocol=pickle.HIGHEST_PROTOCOL)
         return
 
-    def cleanup_conversion_history(self):
+    def cleanup_conversion_history(self) -> None:
         """Get rid of duplicate records before they are written to the history table."""
         for row in self.history_item_selection.data:
             if row.density_selection is None and row.unit_selection is None and row.unit_value is None:
                 self.history_item_selection.data.remove(row=row)
             elif row.density_selection == self.density_item_selection.value.food_name and \
-                row.unit_selection == self.unit_selection.value.name and \
-                row.unit_value == self.input_value.value:
+                    row.unit_selection == self.unit_selection.value.name and \
+                    row.unit_value == self.item_cost_input.value:
                 self.history_item_selection.data.remove(row=row)
-
         return
 
-    def clear_history(self, button):
+    def clear_history(self, button) -> None:
         """Delete the history file and remove all items from the table."""
         if Path.exists(self.location):
             self.location.unlink()
@@ -105,16 +115,16 @@ class main_app(toga.App):
             for row in self.history_item_selection.data:
                 self.history_item_selection.data.remove(row=row)
 
-    def reset_input(self, button):
+    def reset_input(self, button) -> None:
         """Reset the input boxes and choices."""
-        self.input_value.value = 1
+        self.item_cost_input.value = 1
         self.unit_selection.value = self.unit_selection.items[0]
         self.density_item_selection.value = self.density_item_selection.items[0]
 
-    def load_history(self, *kwargs):
+    def load_history(self, *kwargs) -> None:
         """Take a value from the history table and load it into the input boxes."""
         if self.history_item_selection.selection.unit_selection:
-            self.input_value.value = self.history_item_selection.selection.unit_value
+            self.item_cost_input.value = self.history_item_selection.selection.unit_value
             # Lookup mass value and reassign
             for index, value in enumerate(selection_list):
                 if value['name'] == str(self.history_item_selection.selection.unit_selection):
@@ -123,22 +133,24 @@ class main_app(toga.App):
             for index, value in enumerate(self.food_items):
                 if value['food_name'] == str(self.history_item_selection.selection.density_selection):
                     self.density_item_selection.value = self.density_item_selection.items[index]
+            self.comment_input.value = self.history_item_selection.selection.comment
             self.perform_conversion()
         else:
             print('Nothing selected.')
 
-    def write_history(self):
+    def write_history(self) -> None:
         """Write history to a pickle file after cleaning it up. Once done go to the latest menu item."""
         self.cleanup_conversion_history()
         self.history_item_selection.data.append({
             "unit_selection": self.unit_selection.value.name,
-            "unit_value": self.input_value.value,
-            "density_selection": self.density_item_selection.value.food_name
-        })        
+            "unit_value": self.item_cost_input.value,
+            "density_selection": self.density_item_selection.value.food_name,
+            "comment": self.comment_input.value
+        })
         self.convert_history_to_pickle()
-        self.history_item_selection.scroll_to_bottom()
+        #self.history_item_selection.scroll_to_bottom()
 
-    def setup_history_menu(self):
+    def setup_history_menu(self) -> toga.Box:
         """Setup the history table, that displays previous conversions."""
         history_label = toga.Label("History: ", style=Pack(
             font_family="monospace", font_style="italic"))
@@ -146,50 +158,62 @@ class main_app(toga.App):
             data = self.load_history_from_pickle()
         else:
             data = [{"unit_selection": None,
-                     "unit_value": None, "density_selection": None}]
+                     "unit_value": None,
+                     "density_selection": None,
+                     "comment": None}]
 
-        self.history_item_selection = toga.Table(headings=["Unit", "Quantity", "Food Item"],
+        self.history_item_selection = toga.Table(headings=["Unit", "Quantity", "Food Item", "Comment"],
                                                  accessors=[
-                                                     "unit_selection", "unit_value", "density_selection"],
+                                                     "unit_selection", "unit_value", "density_selection", "comment"],
                                                  style=Pack(flex=150),
                                                  multiple_select=False,
                                                  on_select=self.load_history,
                                                  data=data)
-        box = toga.Box(children=[#history_label, 
-                                 self.history_item_selection,
+        box = toga.Box(children=[  # history_label,
+            self.history_item_selection,
                        # toga.Box(children=[load_button, clear_button])
-                                 ], style=Pack(direction=COLUMN, flex=150))
+                       ], style=Pack(direction=COLUMN, flex=150))
         return box
 
     def perform_conversion(self, *kwargs):
         """Convert the current inputs and write history to table."""
         self.write_history()
         # parent conversions
-        price = float(self.input_value.value)
+        price = float(self.item_cost_input.value)
         density = (float(self.density_item_selection.value.g_ml)
                    * ureg.gram) / (1 * ureg.ml)
         mass = self.unit_selection.value.mass
         price_per_unit = price/mass
-        self.unit.text = round(price_per_unit, 5)        
+        self.unit.text = round(price_per_unit, 5)
 
         # Metric Conversions
         # Mass
         self.kg_1.text = round(price/mass.to('kg').m, 5)
         self.g_900.text = round((price/mass.to('gram').m)*900, 5)
+        self.g_800.text = round((price/mass.to('gram').m)*800, 5)
         self.g_750.text = round((price/mass.to('gram').m)*750, 5)
+        self.g_700.text = round((price/mass.to('gram').m)*700, 5)
+        self.g_600.text = round((price/mass.to('gram').m)*600, 5)
         self.g_500.text = round((price/mass.to('gram').m)*500, 5)
+        self.g_400.text = round((price/mass.to('gram').m)*400, 5)
         self.g_300.text = round((price/mass.to('gram').m)*300, 5)
         self.g_250.text = round((price/mass.to('gram').m)*250, 5)
+        self.g_200.text = round((price/mass.to('gram').m)*200, 5)
         self.g_100.text = round((price/mass.to('gram').m)*100, 5)
         self.g_1.text = round(price/mass.to('gram').m, 5)
         self.mg_1.text = round(price/mass.to('milligram').m, 10)
         # Volume
         self.l_1.text = round(price/(mass/density).to('liter').m, 5)
-        self.ml_900.text = round(price/(mass/density).to('milliliter').m*900, 5)
-        self.ml_700.text = round(price/(mass/density).to('milliliter').m*700, 5)
-        self.ml_500.text = round(price/(mass/density).to('milliliter').m*500, 5)
-        self.ml_300.text = round(price/(mass/density).to('milliliter').m*300, 5)
-        self.ml_100.text = round(price/(mass/density).to('milliliter').m*100, 5)
+        self.ml_900.text = round(
+            price/(mass/density).to('milliliter').m*900, 5)
+        self.ml_700.text = round(
+            price/(mass/density).to('milliliter').m*700, 5)
+        self.ml_500.text = round(
+            price/(mass/density).to('milliliter').m*500, 5)
+        self.ml_300.text = round(
+            price/(mass/density).to('milliliter').m*300, 5)
+        self.ml_100.text = round(
+            price/(mass/density).to('milliliter').m*100, 5)
 
         # Imperi.mal Conversions
         # Mass
@@ -206,120 +230,92 @@ class main_app(toga.App):
         self.gal_half.text = round(price/(mass/density).to('gallon').m*.5, 5)
         self.quart_1.text = round(price/(mass/density).to('quart').m, 5)
         self.pint_1.text = round(price/(mass/density).to('pint').m, 5)
-        self.ozfl_1.text = round(price/(mass/density).to('fluid_ounce').m, 5)
+        self.ozf_1.text = round(price/(mass/density).to('fluid_ounce').m, 5)
         self.cup_1.text = round(price/(mass/density).to('cup').m, 5)
-        
+
+        print(type(price_per_unit))
+
         return price_per_unit
 
-    def startup(self):
+    def startup(self) -> None:
         self.define_local_data()
         # Define Metric Mass Labels and Layout
         unit_label = toga.Label("Price per unit: ", style=Pack(
             font_family="monospace", font_style="italic"))
 
-        object_spawn_pool = ["kg_1", "g_900", "g_750", "g_500", "g_300", "g_250", "g_100", "g_1", "mg_1", "lb_3", "lb_1", "oz_12", "oz_8", "oz_6",
-                             "oz_4", "oz_2", "oz_1", "l_1", "ml_900", "ml_700", "ml_500", "ml_300", "ml_100", "gal_1", "gal_half", "quart_1", "pint_1", "ozfl_1", "cup_1"]
-        for object in object_spawn_pool:
+        self.object_spawn_pool = ["kg_1", "g_900", "g_800", "g_750", "g_700", "g_600", "g_500", "g_400", "g_300", "g_250", "g_200", "g_100", "g_1", "mg_1", "lb_3", "lb_1", "oz_12", "oz_8", "oz_6",
+                             "oz_4", "oz_2", "oz_1", "l_1", "ml_900", "ml_700", "ml_500", "ml_300", "ml_100", "gal_1", "gal_half", "quart_1", "pint_1", "ozf_1", "cup_1"]
+        for object in self.object_spawn_pool:
             setattr(self, object, toga.Label("", style=text_style))
-
-        # Define Metric Mass Labels
-        kg_1_label = toga.Label("Price per kilogram: ", style=text_style)
-        g_900_label = toga.Label("Price per 900 grams: ", style=text_style)
-        g_750_label = toga.Label("Price per 750 grams: ", style=text_style)
-        g_500_label = toga.Label("Price per 500 grams: ", style=text_style)
-        g_300_label = toga.Label("Price per 300 grams: ", style=text_style)
-        g_250_label = toga.Label("Price per 250 grams: ", style=text_style)
-        g_100_label = toga.Label("Price per 100 grams: ", style=text_style)
-        g_1_label = toga.Label("Price per gram: ", style=text_style)
-        mg_1_label = toga.Label("Price per milligram: ", style=text_style)
-        l_1_label = toga.Label("Price per litre: ", style=text_style)
-        ml_900_label = toga.Label(
-            "Price per 900 milliliter: ", style=text_style)
-        ml_700_label = toga.Label(
-            "Price per 700 milliliter: ", style=text_style)
-        ml_500_label = toga.Label(
-            "Price per 500 milliliter: ", style=text_style)
-        ml_300_label = toga.Label(
-            "Price per 300 milliliter: ", style=text_style)
-        ml_100_label = toga.Label(
-            "Price per 100 milliliter: ", style=text_style)
-
-        # Define Imperial Mass Labels
-        lb_3_label = toga.Label("Price per 3 pounds: ", style=text_style)
-        lb_1_label = toga.Label("Price per pound: ", style=text_style)
-        oz_12_label = toga.Label("Price per 12 ounces: ", style=text_style)
-        oz_8_label = toga.Label("Price per 8 ounces: ", style=text_style)
-        oz_6_label = toga.Label("Price per 6 ounces: ", style=text_style)
-        oz_4_label = toga.Label("Price per 4 ounces: ", style=text_style)
-        oz_2_label = toga.Label("Price per 2 ounces: ", style=text_style)
-        oz_1_label = toga.Label("Price per 1 ounces: ", style=text_style)
-        gal_1_label = toga.Label(
-            "Price per American gallon: ", style=text_style)
-        gal_half_label = toga.Label(
-            "Price per American 0.5 gallon: ", style=text_style)
-        quart_1_label = toga.Label(
-            "Price per American quart: ", style=text_style)
-        pint_1_label = toga.Label(
-            "Price per American pint: ", style=text_style)
-        ozfl_1_label = toga.Label(
-            "Price per American fluid ounce: ", style=text_style)
-        cup_1_label = toga.Label("Price per American cup: ", style=text_style)
+            unit_name = ureg(object.split('_')[0]) * object.split('_')[1]
+            setattr(self, object + '_label',
+                    toga.Label(f"Price per {unit_name}:", style=text_style))
 
         self.unit = toga.Label("", style=Pack(
             font_family="monospace", font_style="italic"))
 
-        metric_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[kg_1_label, self.kg_1]),
+        metric_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.kg_1_label, self.kg_1]),
                                                                                   toga.Box(
-                                                                                      children=[g_900_label, self.g_900]),
+                                                                                      children=[self.g_900_label, self.g_900]),
                                                                                   toga.Box(
-                                                                                      children=[g_750_label, self.g_750]),
+                                                                                      children=[self.g_800_label, self.g_800]),
                                                                                   toga.Box(
-                                                                                      children=[g_500_label, self.g_500]),
+                                                                                      children=[self.g_750_label, self.g_750]),
                                                                                   toga.Box(
-                                                                                      children=[g_300_label, self.g_300]),
+                                                                                      children=[self.g_700_label, self.g_700]),
                                                                                   toga.Box(
-                                                                                      children=[g_250_label, self.g_250]),
+                                                                                      children=[self.g_600_label, self.g_600]),
                                                                                   toga.Box(
-                                                                                      children=[g_100_label, self.g_100]),
+                                                                                      children=[self.g_500_label, self.g_500]),
                                                                                   toga.Box(
-                                                                                      children=[g_1_label, self.g_1]),
+                                                                                      children=[self.g_400_label, self.g_400]),
                                                                                   toga.Box(
-                                                                                      children=[mg_1_label, self.mg_1]),
+                                                                                      children=[self.g_300_label, self.g_300]),
+                                                                                  toga.Box(
+                                                                                      children=[self.g_200_label, self.g_200]),
+                                                                                  toga.Box(
+                                                                                      children=[self.g_250_label, self.g_250]),
+                                                                                  toga.Box(
+                                                                                      children=[self.g_100_label, self.g_100]),
+                                                                                  toga.Box(
+                                                                                      children=[self.g_1_label, self.g_1]),
+                                                                                  toga.Box(
+                                                                                      children=[self.mg_1_label, self.mg_1]),
                                                                                   ])
 
-        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[lb_3_label, self.lb_3]),
+        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.lb_3_label, self.lb_3]),
                                                                                     toga.Box(
-                                                                                        children=[lb_1_label, self.lb_1]),
+                                                                                        children=[self.lb_1_label, self.lb_1]),
                                                                                     toga.Box(
-                                                                                        children=[oz_12_label, self.oz_12]),
+                                                                                        children=[self.oz_12_label, self.oz_12]),
                                                                                     toga.Box(
-                                                                                        children=[oz_8_label, self.oz_8]),
+                                                                                        children=[self.oz_8_label, self.oz_8]),
                                                                                     toga.Box(
-                                                                                        children=[oz_6_label, self.oz_6]),
+                                                                                        children=[self.oz_6_label, self.oz_6]),
                                                                                     toga.Box(
-                                                                                        children=[oz_4_label, self.oz_4]),
+                                                                                        children=[self.oz_4_label, self.oz_4]),
                                                                                     toga.Box(
-                                                                                        children=[oz_2_label, self.oz_2]),
+                                                                                        children=[self.oz_2_label, self.oz_2]),
                                                                                     toga.Box(
-                                                                                        children=[oz_1_label, self.oz_1])
+                                                                                        children=[self.oz_1_label, self.oz_1])
                                                                                     ])
 
         metric_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
-            toga.Box(children=[l_1_label, self.l_1]),
-            toga.Box(children=[ml_900_label, self.ml_900]),
-            toga.Box(children=[ml_700_label, self.ml_700]),
-            toga.Box(children=[ml_500_label, self.ml_500]),
-            toga.Box(children=[ml_300_label, self.ml_300]),
-            toga.Box(children=[ml_100_label, self.ml_100])
+            toga.Box(children=[self.l_1_label, self.l_1]),
+            toga.Box(children=[self.ml_900_label, self.ml_900]),
+            toga.Box(children=[self.ml_700_label, self.ml_700]),
+            toga.Box(children=[self.ml_500_label, self.ml_500]),
+            toga.Box(children=[self.ml_300_label, self.ml_300]),
+            toga.Box(children=[self.ml_100_label, self.ml_100])
         ])
 
         imperial_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
-            toga.Box(children=[gal_1_label, self.gal_1]),
-            toga.Box(children=[gal_half_label, self.gal_half]),
-            toga.Box(children=[quart_1_label, self.quart_1]),
-            toga.Box(children=[pint_1_label, self.pint_1]),
-            toga.Box(children=[ozfl_1_label, self.ozfl_1]),
-            toga.Box(children=[cup_1_label, self.cup_1])
+            toga.Box(children=[self.gal_1_label, self.gal_1]),
+            toga.Box(children=[self.gal_half_label, self.gal_half]),
+            toga.Box(children=[self.quart_1_label, self.quart_1]),
+            toga.Box(children=[self.pint_1_label, self.pint_1]),
+            toga.Box(children=[self.ozf_1_label, self.ozf_1]),
+            toga.Box(children=[self.cup_1_label, self.cup_1])
         ])
 
         # Define Item Selection
@@ -341,23 +337,30 @@ class main_app(toga.App):
             toga.OptionItem("American Mass", imperial_mass, icon=mass_icon),
             toga.OptionItem("Metric Volume", metric_volume, icon=volume_icon),
             toga.OptionItem("American Volume",
-                            imperial_volume, icon=volume_icon)
+                            imperial_volume, icon=volume_icon),
         ])
-        input_label = toga.Label("Item Cost: ", style=text_style)
+        item_cost_input_label = toga.Label("Item Cost: ", style=text_style)
+        self.item_cost_input = toga.NumberInput(min=0, value=1, step=0.01)
+        comment_input_label = toga.Label(
+            "Conversion Comment:", style=text_style)
+        self.comment_input = toga.TextInput(style=Pack(flex=200))
+        comment_box = toga.Box(
+            children=[comment_input_label, self.comment_input])
         self.unit_selection = toga.Selection(
             items=selection_list, accessor="name", style=Pack(padding=(0, 5), flex=50))
-        self.input_value = toga.NumberInput(min=0, value=1, step=0.01)
+
         convert_button = toga.Button("Convert",
                                      on_press=self.perform_conversion,
                                      style=button_style)
         input_form = toga.Box(style=Pack(direction=ROW, flex=25), children=[
-                              input_label, self.input_value, self.unit_selection])
+                              item_cost_input_label, self.item_cost_input, self.unit_selection])
         ppu = toga.Box(style=Pack(direction=COLUMN, alignment="center"), children=[
                        toga.Box(children=[unit_label, self.unit])])
-        
+
         # setup main screen layout
         main_box = toga.Box(style=Pack(direction=COLUMN), children=[input_form,
                                                                     food_dropdown,
+                                                                    comment_box,
                                                                     toga.Divider(),
                                                                     convert_button,
                                                                     toga.Divider(),
@@ -374,8 +377,8 @@ class main_app(toga.App):
                                              text="Clear Conversion History",
                                              icon=warning_icon)
         reset_input_command = toga.Command(self.reset_input,
-                                             text="Reset Input",
-                                             icon=warning_icon)
+                                           text="Reset Input",
+                                           icon=warning_icon)
         self.commands.add(clear_history_command)
         self.commands.add(reset_input_command)
 
