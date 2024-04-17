@@ -1,0 +1,4 @@
+* Adds in import history function.
+* Adds in export history function.
+* Adds missing functionality to clear old values which have been converted.
+* Adds in easier method to clear current results.
