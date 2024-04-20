@@ -1,0 +1,2 @@
+* Refactors how the conversion label items are constructed.
+* Refactors how units and values are parsed for a given list item.
