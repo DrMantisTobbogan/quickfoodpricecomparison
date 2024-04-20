@@ -249,12 +249,7 @@ class main_app(toga.App):
         self.unit.text = round(price_per_unit, 5)
 
         for object in self.object_spawn_pool:
-            unit = object.split('_')[0]
-            value = object.split('_')[1]
-            if unit == "fluidounce":
-                unit = "fluid_ounce"
-            if value == "half":
-                value = 0.5
+            unit, value = self.get_spawned_unit_and_value(object)
             if unit in ['kg', 'g', 'mg', 'lbs', 'oz']:
                 getattr(self, object).text = round(
                     price/mass.to(unit).m * float(value), 5)
@@ -271,16 +266,21 @@ class main_app(toga.App):
         for attr in self.object_spawn_pool:
             getattr(self, attr).text = ""
 
+    def get_spawned_unit_and_value(self, object:str) -> tuple[str, float]:
+        """Parse the current object from the spawn pool and return it's unit string and value"""
+        unit = object.split('_')[0]
+        value = object.split('_')[1]
+        if unit == "fluidounce":
+            unit = "fluid_ounce"
+        if value == "half":
+            value = 0.5
+        return [unit, float(value)]
+
     def spawn_menu_items(self) -> None:
         """Create new items in the menu."""
         for object in self.object_spawn_pool:
             setattr(self, object, toga.Label("", style=text_style))
-            unit = object.split('_')[0]
-            value = object.split('_')[1]
-            if unit == "fluidounce":
-                unit = "fluid_ounce"
-            if value == "half":
-                value = 0.5
+            unit, value = self.get_spawned_unit_and_value(object)
             unit_name = ureg(unit) * value
             setattr(self, object + '_label',
                     toga.Label(f"Price per {unit_name}:", style=text_style))
@@ -294,79 +294,28 @@ class main_app(toga.App):
         self.object_spawn_pool = ["kg_1", "g_900", "g_800", "g_750", "g_700", "g_600", "g_500", "g_400", "g_300", "g_250", "g_200", "g_100", "g_1", "mg_1", "lbs_3", "lbs_1", "oz_12", "oz_8", "oz_6",
                                   "oz_4", "oz_2", "oz_1", "l_1", "ml_900", "ml_800", "ml_700", "ml_600", "ml_500", "ml_400", "ml_300", "ml_200", "ml_100", "gallon_1", "gallon_half", "quart_1", "pint_1", "fluidounce_1", "cup_1"]
 
-        # create menu items
+        # create menu items in the conversion screen
         self.spawn_menu_items()
-
         self.unit = toga.Label("", style=Pack(
-            font_family="monospace", font_style="italic"))
-
-        metric_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.kg_1_label, self.kg_1]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_900_label, self.g_900]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_800_label, self.g_800]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_750_label, self.g_750]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_700_label, self.g_700]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_600_label, self.g_600]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_500_label, self.g_500]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_400_label, self.g_400]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_300_label, self.g_300]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_200_label, self.g_200]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_250_label, self.g_250]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_100_label, self.g_100]),
-                                                                                  toga.Box(
-                                                                                      children=[self.g_1_label, self.g_1]),
-                                                                                  toga.Box(
-                                                                                      children=[self.mg_1_label, self.mg_1]),
-                                                                                  ])
-
-        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.lbs_3_label, self.lbs_3]),
-                                                                                    toga.Box(
-                                                                                        children=[self.lbs_1_label, self.lbs_1]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_12_label, self.oz_12]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_8_label, self.oz_8]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_6_label, self.oz_6]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_4_label, self.oz_4]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_2_label, self.oz_2]),
-                                                                                    toga.Box(
-                                                                                        children=[self.oz_1_label, self.oz_1])
-                                                                                    ])
-
-        metric_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
-            toga.Box(children=[self.l_1_label, self.l_1]),
-            toga.Box(children=[self.ml_900_label, self.ml_900]),
-            toga.Box(children=[self.ml_800_label, self.ml_800]),
-            toga.Box(children=[self.ml_700_label, self.ml_700]),
-            toga.Box(children=[self.ml_600_label, self.ml_600]),
-            toga.Box(children=[self.ml_500_label, self.ml_500]),
-            toga.Box(children=[self.ml_400_label, self.ml_400]),
-            toga.Box(children=[self.ml_300_label, self.ml_300]),
-            toga.Box(children=[self.ml_200_label, self.ml_200]),
-            toga.Box(children=[self.ml_100_label, self.ml_100])
-        ])
-
-        imperial_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
-            toga.Box(children=[self.gallon_1_label, self.gallon_1]),
-            toga.Box(children=[self.gallon_half_label, self.gallon_half]),
-            toga.Box(children=[self.quart_1_label, self.quart_1]),
-            toga.Box(children=[self.pint_1_label, self.pint_1]),
-            toga.Box(children=[self.fluidounce_1_label, self.fluidounce_1]),
-            toga.Box(children=[self.cup_1_label, self.cup_1])
-        ])
+            font_family="monospace", font_style="italic"))        
+        self.metric_mass_children = []
+        self.imperial_mass_children = []
+        self.metric_volume_children = []
+        self.imperial_volume_children = []
+        for object in self.object_spawn_pool:
+            unit, value = self.get_spawned_unit_and_value(object)
+            if unit in ['kg', 'g', 'mg']:
+                self.metric_mass_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+            elif unit in ['lbs', 'oz']:
+                self.imperial_mass_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+            elif unit in ['l', 'ml']:
+                self.metric_volume_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+            elif unit in ['gallon', 'quart', 'pint', 'fluid_ounce', 'cup']:
+                self.imperial_volume_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+        metric_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.metric_mass_children)
+        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.imperial_mass_children)
+        metric_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.metric_volume_children)
+        imperial_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.imperial_volume_children)
 
         # Define Item Selection
         item_selection_label = toga.Label("Food Item: ", style=text_style)
