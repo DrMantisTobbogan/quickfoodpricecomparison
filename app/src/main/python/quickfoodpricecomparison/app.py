@@ -266,7 +266,7 @@ class main_app(toga.App):
         for attr in self.object_spawn_pool:
             getattr(self, attr).text = ""
 
-    def get_spawned_unit_and_value(self, object:str) -> tuple[str, float]:
+    def get_spawned_unit_and_value(self, object: str) -> tuple[str, float]:
         """Parse the current object from the spawn pool and return it's unit string and value"""
         unit = object.split('_')[0]
         value = object.split('_')[1]
@@ -297,7 +297,7 @@ class main_app(toga.App):
         # create menu items in the conversion screen
         self.spawn_menu_items()
         self.unit = toga.Label("", style=Pack(
-            font_family="monospace", font_style="italic"))        
+            font_family="monospace", font_style="italic"))
         self.metric_mass_children = []
         self.imperial_mass_children = []
         self.metric_volume_children = []
@@ -305,17 +305,25 @@ class main_app(toga.App):
         for object in self.object_spawn_pool:
             unit, value = self.get_spawned_unit_and_value(object)
             if unit in ['kg', 'g', 'mg']:
-                self.metric_mass_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+                self.metric_mass_children.append(
+                    toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
             elif unit in ['lbs', 'oz']:
-                self.imperial_mass_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+                self.imperial_mass_children.append(
+                    toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
             elif unit in ['l', 'ml']:
-                self.metric_volume_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+                self.metric_volume_children.append(
+                    toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
             elif unit in ['gallon', 'quart', 'pint', 'fluid_ounce', 'cup']:
-                self.imperial_volume_children.append(toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
-        metric_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.metric_mass_children)
-        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.imperial_mass_children)
-        metric_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.metric_volume_children)
-        imperial_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=self.imperial_volume_children)
+                self.imperial_volume_children.append(
+                    toga.Box(children=[getattr(self, object + '_label'), getattr(self, object)]))
+        metric_mass = toga.Box(style=Pack(
+            direction=COLUMN, padding=5), children=self.metric_mass_children)
+        imperial_mass = toga.Box(style=Pack(
+            direction=COLUMN, padding=5), children=self.imperial_mass_children)
+        metric_volume = toga.Box(style=Pack(
+            direction=COLUMN, padding=5), children=self.metric_volume_children)
+        imperial_volume = toga.Box(style=Pack(
+            direction=COLUMN, padding=5), children=self.imperial_volume_children)
 
         # Define Item Selection
         item_selection_label = toga.Label("Food Item: ", style=text_style)
