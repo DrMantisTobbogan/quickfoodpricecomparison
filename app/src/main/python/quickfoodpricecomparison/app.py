@@ -75,7 +75,8 @@ class main_app(toga.App):
             data = results['resultData'].getData()
             context = self._impl.native
 
-            bytesJarray = bytes((context.getContentResolver().openInputStream(data).readAllBytes()))
+            bytesJarray = bytes(
+                (context.getContentResolver().openInputStream(data).readAllBytes()))
             data = pickle.loads(bytesJarray)  # Convert bytes to string
             for item in data:
                 self.history_item_selection.data.append({
@@ -89,7 +90,7 @@ class main_app(toga.App):
         return
 
     async def export_data(self, widget) -> None:
-        epoch_time = str(int(time.time()))            
+        epoch_time = str(int(time.time()))
         print("current_platform : ", current_platform)
         if current_platform == "android":
             from android.content import Intent
@@ -111,7 +112,7 @@ class main_app(toga.App):
             output_stream = context.getContentResolver().openOutputStream(uri)
             output_stream.write(self.convert_history_to_pickle())
             output_stream.close()
-            #input_stream.close()
+            # input_stream.close()
             output_stream.close()
 
             print(f'Saved {byte_count} bytes to {uri.toString()}')
@@ -152,7 +153,7 @@ class main_app(toga.App):
         if location == None:
             with open(self.location, 'wb+') as handle:
                 pickle.dump(pickleable_dict, handle,
-                            protocol=pickle.HIGHEST_PROTOCOL)        
+                            protocol=pickle.HIGHEST_PROTOCOL)
         return pickle.dumps(pickleable_dict, protocol=pickle.HIGHEST_PROTOCOL)
 
     def cleanup_conversion_history(self) -> None:
@@ -181,7 +182,6 @@ class main_app(toga.App):
         self.density_item_selection.value = self.density_item_selection.items[0]
         self.clean_menu_items()
         self.clear_button.style.visibility = 'hidden'
-    
 
     def load_history(self, *kwargs) -> None:
         """Take a value from the history table and load it into the input boxes."""
@@ -210,7 +210,7 @@ class main_app(toga.App):
             "comment": self.comment_input.value
         })
         self.convert_history_to_pickle()
-        #self.history_item_selection.scroll_to_bottom()
+        # self.history_item_selection.scroll_to_bottom()
 
     def setup_history_menu(self) -> toga.Box:
         """Setup the history table, that displays previous conversions."""
@@ -248,53 +248,19 @@ class main_app(toga.App):
         price_per_unit = price/mass
         self.unit.text = round(price_per_unit, 5)
 
-        # Metric Conversions
-        # Mass
-        self.kg_1.text = round(price/mass.to('kg').m, 5)
-        self.g_900.text = round((price/mass.to('gram').m)*900, 5)
-        self.g_800.text = round((price/mass.to('gram').m)*800, 5)
-        self.g_750.text = round((price/mass.to('gram').m)*750, 5)
-        self.g_700.text = round((price/mass.to('gram').m)*700, 5)
-        self.g_600.text = round((price/mass.to('gram').m)*600, 5)
-        self.g_500.text = round((price/mass.to('gram').m)*500, 5)
-        self.g_400.text = round((price/mass.to('gram').m)*400, 5)
-        self.g_300.text = round((price/mass.to('gram').m)*300, 5)
-        self.g_250.text = round((price/mass.to('gram').m)*250, 5)
-        self.g_200.text = round((price/mass.to('gram').m)*200, 5)
-        self.g_100.text = round((price/mass.to('gram').m)*100, 5)
-        self.g_1.text = round(price/mass.to('gram').m, 5)
-        self.mg_1.text = round(price/mass.to('milligram').m, 10)
-        # Volume
-        self.l_1.text = round(price/(mass/density).to('liter').m, 5)
-        self.ml_900.text = round(
-            price/(mass/density).to('milliliter').m*900, 5)
-        self.ml_700.text = round(
-            price/(mass/density).to('milliliter').m*700, 5)
-        self.ml_500.text = round(
-            price/(mass/density).to('milliliter').m*500, 5)
-        self.ml_300.text = round(
-            price/(mass/density).to('milliliter').m*300, 5)
-        self.ml_100.text = round(
-            price/(mass/density).to('milliliter').m*100, 5)
-
-        # Imperi.mal Conversions
-        # Mass
-        self.lb_3.text = round((price/mass.to('lbs')).m*3, 5)
-        self.lb_1.text = round(price/mass.to('lbs').m, 5)
-        self.oz_12.text = round((price/mass.to('oz')).m*12, 5)
-        self.oz_8.text = round((price/mass.to('oz')).m*8, 5)
-        self.oz_6.text = round((price/mass.to('oz')).m*6, 5)
-        self.oz_4.text = round((price/mass.to('oz')).m*4, 5)
-        self.oz_2.text = round((price/mass.to('oz')).m*2, 5)
-        self.oz_1.text = round(price/mass.to('oz').m, 5)
-        # Volume
-        self.gal_1.text = round(price/(mass/density).to('gallon').m, 5)
-        self.gal_half.text = round(price/(mass/density).to('gallon').m*.5, 5)
-        self.quart_1.text = round(price/(mass/density).to('quart').m, 5)
-        self.pint_1.text = round(price/(mass/density).to('pint').m, 5)
-        self.ozf_1.text = round(price/(mass/density).to('fluid_ounce').m, 5)
-        self.cup_1.text = round(price/(mass/density).to('cup').m, 5)
-
+        for object in self.object_spawn_pool:
+            unit = object.split('_')[0]
+            value = object.split('_')[1]
+            if unit == "fluidounce":
+                unit = "fluid_ounce"
+            if value == "half":
+                value = 0.5
+            if unit in ['kg', 'g', 'mg', 'lbs', 'oz']:
+                getattr(self, object).text = round(
+                    price/mass.to(unit).m * float(value), 5)
+            elif unit in ['l', 'ml', 'gallon', 'quart', 'pint', 'fluid_ounce', 'cup']:
+                getattr(self, object).text = round(
+                    price/(mass/density).to(unit).m * float(value), 5)
         print(type(price_per_unit))
         self.clear_button.style.visibility = 'visible'
 
@@ -302,47 +268,20 @@ class main_app(toga.App):
 
     def clean_menu_items(self) -> None:
         """Reset items in menu to an empty text string."""
-        self.unit.text = ""
-        self.kg_1.text = ""
-        self.g_900.text = ""
-        self.g_800.text = ""
-        self.g_750.text = ""
-        self.g_700.text = ""
-        self.g_600.text = ""
-        self.g_500.text = ""
-        self.g_400.text = ""
-        self.g_300.text = ""
-        self.g_250.text = ""
-        self.g_200.text = ""
-        self.g_100.text = ""
-        self.g_1.text = ""
-        self.mg_1.text = ""
-        self.l_1.text = ""
-        self.ml_900.text = ""
-        self.ml_700.text = ""
-        self.ml_500.text = ""
-        self.ml_300.text = ""
-        self.ml_100.text = ""
-        self.lb_3.text = ""
-        self.lb_1.text = ""
-        self.oz_12.text =""
-        self.oz_8.text = ""
-        self.oz_6.text = ""
-        self.oz_4.text = ""
-        self.oz_2.text = ""
-        self.oz_1.text = ""        
-        self.gal_1.text = ""
-        self.gal_half.text = ""
-        self.quart_1.text = ""
-        self.pint_1.text = ""
-        self.ozf_1.text = ""
-        self.cup_1.text = ""        
+        for attr in self.object_spawn_pool:
+            getattr(self, attr).text = ""
 
     def spawn_menu_items(self) -> None:
         """Create new items in the menu."""
         for object in self.object_spawn_pool:
             setattr(self, object, toga.Label("", style=text_style))
-            unit_name = ureg(object.split('_')[0]) * object.split('_')[1]
+            unit = object.split('_')[0]
+            value = object.split('_')[1]
+            if unit == "fluidounce":
+                unit = "fluid_ounce"
+            if value == "half":
+                value = 0.5
+            unit_name = ureg(unit) * value
             setattr(self, object + '_label',
                     toga.Label(f"Price per {unit_name}:", style=text_style))
 
@@ -352,8 +291,8 @@ class main_app(toga.App):
         unit_label = toga.Label("Price per unit: ", style=Pack(
             font_family="monospace", font_style="italic"))
 
-        self.object_spawn_pool = ["kg_1", "g_900", "g_800", "g_750", "g_700", "g_600", "g_500", "g_400", "g_300", "g_250", "g_200", "g_100", "g_1", "mg_1", "lb_3", "lb_1", "oz_12", "oz_8", "oz_6",
-                             "oz_4", "oz_2", "oz_1", "l_1", "ml_900", "ml_700", "ml_500", "ml_300", "ml_100", "gal_1", "gal_half", "quart_1", "pint_1", "ozf_1", "cup_1"]
+        self.object_spawn_pool = ["kg_1", "g_900", "g_800", "g_750", "g_700", "g_600", "g_500", "g_400", "g_300", "g_250", "g_200", "g_100", "g_1", "mg_1", "lbs_3", "lbs_1", "oz_12", "oz_8", "oz_6",
+                                  "oz_4", "oz_2", "oz_1", "l_1", "ml_900", "ml_800", "ml_700", "ml_600", "ml_500", "ml_400", "ml_300", "ml_200", "ml_100", "gallon_1", "gallon_half", "quart_1", "pint_1", "fluidounce_1", "cup_1"]
 
         # create menu items
         self.spawn_menu_items()
@@ -390,9 +329,9 @@ class main_app(toga.App):
                                                                                       children=[self.mg_1_label, self.mg_1]),
                                                                                   ])
 
-        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.lb_3_label, self.lb_3]),
+        imperial_mass = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[toga.Box(children=[self.lbs_3_label, self.lbs_3]),
                                                                                     toga.Box(
-                                                                                        children=[self.lb_1_label, self.lb_1]),
+                                                                                        children=[self.lbs_1_label, self.lbs_1]),
                                                                                     toga.Box(
                                                                                         children=[self.oz_12_label, self.oz_12]),
                                                                                     toga.Box(
@@ -410,18 +349,22 @@ class main_app(toga.App):
         metric_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
             toga.Box(children=[self.l_1_label, self.l_1]),
             toga.Box(children=[self.ml_900_label, self.ml_900]),
+            toga.Box(children=[self.ml_800_label, self.ml_800]),
             toga.Box(children=[self.ml_700_label, self.ml_700]),
+            toga.Box(children=[self.ml_600_label, self.ml_600]),
             toga.Box(children=[self.ml_500_label, self.ml_500]),
+            toga.Box(children=[self.ml_400_label, self.ml_400]),
             toga.Box(children=[self.ml_300_label, self.ml_300]),
+            toga.Box(children=[self.ml_200_label, self.ml_200]),
             toga.Box(children=[self.ml_100_label, self.ml_100])
         ])
 
         imperial_volume = toga.Box(style=Pack(direction=COLUMN, padding=5), children=[
-            toga.Box(children=[self.gal_1_label, self.gal_1]),
-            toga.Box(children=[self.gal_half_label, self.gal_half]),
+            toga.Box(children=[self.gallon_1_label, self.gallon_1]),
+            toga.Box(children=[self.gallon_half_label, self.gallon_half]),
             toga.Box(children=[self.quart_1_label, self.quart_1]),
             toga.Box(children=[self.pint_1_label, self.pint_1]),
-            toga.Box(children=[self.ozf_1_label, self.ozf_1]),
+            toga.Box(children=[self.fluidounce_1_label, self.fluidounce_1]),
             toga.Box(children=[self.cup_1_label, self.cup_1])
         ])
 
@@ -448,7 +391,8 @@ class main_app(toga.App):
                             imperial_volume, icon=volume_icon),
         ])
         item_cost_input_label = toga.Label("Item Cost: ", style=text_style)
-        self.item_cost_input = toga.NumberInput(min=0, value=1, step=0.01, style=text_style)
+        self.item_cost_input = toga.NumberInput(
+            min=0, value=1, step=0.01, style=text_style)
         comment_input_label = toga.Label(
             "Conversion Comment:", style=text_style)
         self.comment_input = toga.TextInput(style=text_style)
@@ -464,9 +408,10 @@ class main_app(toga.App):
         self.clear_button = toga.Button(icon=clear_icon,
                                         on_press=self.reset_input,
                                         style=button_style)
-        self.clear_button.style.width = 75        
+        self.clear_button.style.width = 75
         self.clear_button.style.visibility = 'hidden'
-        clear_convert_box = toga.Box(children=[convert_button, self.clear_button])
+        clear_convert_box = toga.Box(
+            children=[convert_button, self.clear_button])
         input_form = toga.Box(style=Pack(direction=ROW, flex=25), children=[
                               item_cost_input_label, self.item_cost_input, self.unit_selection])
         ppu = toga.Box(style=Pack(direction=COLUMN, alignment="center"), children=[
@@ -500,13 +445,13 @@ class main_app(toga.App):
         self.commands.add(clear_input_command)
         if current_platform == "android":
             export_data_command = toga.Command(self.export_data,
-                                           text='Export History',
-                                           icon=warning_icon,
-                                           group=toga.Group.FILE)
+                                               text='Export History',
+                                               icon=warning_icon,
+                                               group=toga.Group.FILE)
             import_data_command = toga.Command(self.import_data,
-                                           text='Import History',
-                                           icon=warning_icon,
-                                           group=toga.Group.FILE)
+                                               text='Import History',
+                                               icon=warning_icon,
+                                               group=toga.Group.FILE)
             self.commands.add(import_data_command)
             self.commands.add(export_data_command)
 
