@@ -1,0 +1,1 @@
+* Makes some changes for f-droid compatibility
