@@ -27,7 +27,7 @@ import com.wolfcola.quickfoodpricecomparison.quickfoodpricecomparison.R;
 public class MainActivity extends AppCompatActivity {
 
     // To profile app launch, use `adb -s MainActivity`; look for "onCreate() start" and "onResume() completed".
-    private String TAG = "MainActivity";
+    private final String TAG = "MainActivity";
     private static PyObject pythonApp;
 
     /**
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem menuitem) {
         Log.d(TAG, "onOptionsItemSelected() start");
         PyObject pyResult = userCode("onOptionsItemSelected", menuitem);
-        boolean result = (pyResult == null) ? false : pyResult.toBoolean();
+        boolean result = pyResult != null && pyResult.toBoolean();
         Log.d(TAG, "onOptionsItemSelected() complete");
         return result;
     }
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.d(TAG, "onPrepareOptionsMenu() start");
         PyObject pyResult = userCode("onPrepareOptionsMenu", menu);
-        boolean result = (pyResult == null) ? false : pyResult.toBoolean();
+        boolean result = pyResult != null && pyResult.toBoolean();
         Log.d(TAG, "onPrepareOptionsMenu() complete");
         return result;
     }
