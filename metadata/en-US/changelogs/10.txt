@@ -1,1 +1,4 @@
 * Makes some changes for f-droid compatibility
+* fixes bug with location stopping the build.
+* bumps version name in build.gradle
+* updates changelog

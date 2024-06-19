@@ -119,6 +119,13 @@ class main_app(toga.App):
             print(f'Saved {byte_count} bytes to {uri.toString()}')
         else:
             pass
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        self._location = value
 
     def define_local_data(self) -> None:
         """Retrieve the platforms local data path and create it if necessary."""
