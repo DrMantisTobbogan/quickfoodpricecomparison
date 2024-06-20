@@ -1,0 +1,2 @@
+* bumps to gradle 3.8
+* changes Python 3.8 to 3.9

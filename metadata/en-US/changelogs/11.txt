@@ -1,1 +1,1 @@
-- fixes stupid version numbering issue
+* fixes stupid version numbering issue
