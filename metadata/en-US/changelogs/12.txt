@@ -1,1 +1,1 @@
-- freezes all python packages
+* freezes all python packages
