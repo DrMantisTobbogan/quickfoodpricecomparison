@@ -1,7 +1,7 @@
 appdirs==1.4.4
-flexcache==0.3
-flexparser==0.3.1
-pint==0.24
+flexcache==0.2
+flexparser==0.1
+pint==0.21.1
 toga-android==0.4.5
 toga-core==0.4.5
 travertino==0.3.0

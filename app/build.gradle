@@ -24,7 +24,7 @@ android {
         targetSdkVersion 34
 
         python {
-            version "3.10"
+            version "3.8"
             pip {
                 install "-r", "requirements.txt"
             }
