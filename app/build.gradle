@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId "com.wolfcola.quickfoodpricecomparison.quickfoodpricecomparison"
         versionCode 2
-        versionName '1.1.6'
+        versionName '1.1.7'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Briefcase currently requires API Level 24 for the `pidof` command, and the `--pid`
