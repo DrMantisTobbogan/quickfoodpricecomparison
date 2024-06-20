@@ -12,8 +12,8 @@ android {
 
     defaultConfig {
         applicationId "com.wolfcola.quickfoodpricecomparison.quickfoodpricecomparison"
-        versionCode 3
-        versionName '1.1.8'
+        versionCode 4
+        versionName '1.1.9'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Briefcase currently requires API Level 24 for the `pidof` command, and the `--pid`
@@ -61,6 +61,15 @@ android {
                 "src/main/python-briefcase",  // Template code
                 "src/main/python/quickfoodpricecomparison/resources"
             ]
+        }
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.9"
+        pyc {
+            src = false
         }
     }
 }
