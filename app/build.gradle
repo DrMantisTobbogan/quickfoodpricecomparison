@@ -40,14 +40,14 @@ android {
     }
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21) // replace with your desired Java version
+            languageVersion = JavaLanguageVersion.of(22) // replace with your desired Java version
 
         }
     }
 
     compileOptions {
-      sourceCompatibility JavaVersion.VERSION_21
-      targetCompatibility JavaVersion.VERSION_21
+      sourceCompatibility JavaVersion.VERSION_22
+      targetCompatibility JavaVersion.VERSION_22
     }
 
     buildTypes {
