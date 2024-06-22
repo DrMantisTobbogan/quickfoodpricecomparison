@@ -1,0 +1,2 @@
+* Changes to Python 3.11 in order to _maybe_ align with f-droid build server
+* Changes to Java 21 and fixes mismatched configuration in build.gradle
