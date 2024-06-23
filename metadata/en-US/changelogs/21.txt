@@ -1,0 +1,2 @@
+* Changes to Java 1.7
+* Targets higher minimum Android SDK
